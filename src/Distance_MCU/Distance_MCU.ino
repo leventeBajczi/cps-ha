@@ -65,7 +65,7 @@ float serial_read(SoftwareSerial& ss) {
           ret = (ret << 8) | ss.read();
           waited = false;
       } else if (waited) {
-          return (float)ret;
+          return *(float*)&ret;
       } else {
           delay(25);
           waited = true;
@@ -135,7 +135,7 @@ void loop()
         float dst1 = serial_read(slave1);
         float dst2 = serial_read(slave2);
 
-        data.payload = dst1 / 2 + dst2 / 2;
+        data.payload = dst1;
         data.timestamp = current_millis;
         writer.write_data((uint8_t*)&data, sizeof(data));
         last_millis = current_millis;
