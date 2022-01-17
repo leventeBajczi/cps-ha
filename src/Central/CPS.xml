@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dds xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://community.rti.com/schema/6.0.1/rti_dds_profiles.xsd" version="6.0.1">
+    <types>
+      <struct name="FloatSensorData">
+        <member name="payload" type="float32"/>
+        <member name="timestamp" type="uint64"/>
+      </struct>
+      <struct name="IntSensorData">
+        <member name="payload" type="uint32"/>
+        <member name="timestamp" type="uint64"/>
+      </struct>
+      <struct name="Command">
+        <member name="payload" type="string" stringMaxLength="32"/>
+      </struct>
+    </types>
+
+    <domain_library name="ACCDomainLibrary">
+      <domain name="ACCDomain" domain_id="48">
+        <register_type name="FloatSensorData" type_ref="FloatSensorData"/>
+        <register_type name="IntSensorData" type_ref="IntSensorData"/>
+        <register_type name="Command" type_ref="Command"/>
+        <topic name="Speed" register_type_ref="IntSensorData"/>
+        <topic name="Distance" register_type_ref="FloatSensorData"/>
+        <topic name="EngineCommand" register_type_ref="Command"/>
+        <topic name="DriverCommand" register_type_ref="Command"/>
+      </domain>
+    </domain_library>
+
+    <domain_participant_library name="ACCParticipantLibrary">
+      <domain_participant name="McuCentral" domain_ref="ACCDomainLibrary::ACCDomain">
+        <publisher name="Publisher">
+          <data_writer name="EngineCommandWriter" topic_ref="EngineCommand"/>
+        </publisher>
+        <subscriber name="Subscriber">
+          <data_reader name="SpeedReader" topic_ref="Speed"/>
+          <data_reader name="DistanceReader" topic_ref="Distance"/>
+          <data_reader name="DriverCommandReader" topic_ref="DriverCommand"/>
+        </subscriber>
+      </domain_participant>
+      <domain_participant name="McuSpeed" domain_ref="ACCDomainLibrary::ACCDomain">
+        <publisher name="Publisher">
+          <data_writer name="SpeedWriter" topic_ref="Speed"/>
+        </publisher>
+      </domain_participant>
+      <domain_participant name="McuDistance" domain_ref="ACCDomainLibrary::ACCDomain">
+        <publisher name="Publisher">
+          <data_writer name="DistanceWriter" topic_ref="Distance"/>
+        </publisher>
+      </domain_participant>
+      <domain_participant name="EngineControl" domain_ref="ACCDomainLibrary::ACCDomain">
+        <subscriber name="Subscriber">
+          <data_reader name="EngineCommandReader" topic_ref="EngineCommand"/>
+        </subscriber>
+      </domain_participant>
+      <domain_participant name="Monitoring" domain_ref="ACCDomainLibrary::ACCDomain">
+        <subscriber name="Subscriber">
+          <data_reader name="SpeedReader" topic_ref="Speed"/>
+          <data_reader name="DistanceReader" topic_ref="Distance"/>
+          <data_reader name="EngineCommandReader" topic_ref="EngineCommand"/>
+          <data_reader name="DriverCommandReader" topic_ref="DriverCommand"/>
+        </subscriber>
+      </domain_participant>
+      <domain_participant name="Driver" domain_ref="ACCDomainLibrary::ACCDomain">
+        <publisher name="Publisher">
+          <data_writer name="DriverCommandWriter" topic_ref="DriverCommand"/>
+        </publisher>
+      </domain_participant>
+    </domain_participant_library>
+
+</dds>

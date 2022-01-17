@@ -8,6 +8,8 @@ with rti.open_connector(url="./CPS.xml", config_name="ACCParticipantLibrary::Dri
 
     while True:
         output.instance.set_dictionary({"payload": "On"})
-        sleep(10)
+        output.write()
+        sleep(30)
         output.instance.set_dictionary({"payload": "Off"})
-        sleep(10)
+        output.write()
+        sleep(5)

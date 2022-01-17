@@ -1,7 +1,10 @@
 #include <nano_client_arduino.h>
 #include <WiFi.h>
 #include <ArduinoOTA.h>
-#include <analogWrite.h>
+
+#define INCREASE_LED 13
+#define HOLD_LED 12
+#define DECREASE_LED 14
 
 
 #define CLIENT_KEY          0xC1CA0003
@@ -42,14 +45,24 @@ struct Command
 void on_data(void *const listener, XrceClient& client, const XrceReceivedData& recv_data)
 {
     Command data;
-    const uint8_t *data_ptr = recv_data.data();
+    const uint8_t *data_ptr = recv_data.data() + 4;
     memcpy(data.payload, data_ptr, sizeof(data.payload));
-    if(!strcmp(data.payload, "increase")) {
-        analogWrite(2, 255);
-    } else if (!strcmp(data.payload, "decrease")) {
-        analogWrite(2, 32);
-    } else if (!strcmp(data.payload, "hold")) {
-        analogWrite(2, 128);
+    if(!strncmp(data.payload, "Increase", strlen("Increase"))) {
+        digitalWrite(INCREASE_LED, HIGH);
+        digitalWrite(DECREASE_LED, LOW);
+        digitalWrite(HOLD_LED, LOW);
+    } else if (!strncmp(data.payload, "Decrease", strlen("Decrease"))) {
+        digitalWrite(INCREASE_LED, LOW);
+        digitalWrite(DECREASE_LED, HIGH);
+        digitalWrite(HOLD_LED, LOW);
+    } else if (!strncmp(data.payload, "Hold", strlen("Hold"))) {
+        digitalWrite(INCREASE_LED, LOW);
+        digitalWrite(DECREASE_LED, LOW);
+        digitalWrite(HOLD_LED, HIGH);
+    } else {
+        digitalWrite(INCREASE_LED, LOW);
+        digitalWrite(DECREASE_LED, LOW);
+        digitalWrite(HOLD_LED, LOW);
     }
 }
 
@@ -93,6 +106,10 @@ bool xrce_connect()
         return false;
     }
 
+    if (!reader.read_data()) {
+      return false;
+    }
+
     return true;
 }
 
@@ -100,18 +117,22 @@ bool xrce_connect()
 void setup()
 {
     wifi_connect();
-
     if (!xrce_connect())
     {
         while (1) {}
     }
+ 
+    pinMode(INCREASE_LED, OUTPUT);
+    pinMode(DECREASE_LED, OUTPUT);
+    pinMode(HOLD_LED, OUTPUT);
 
-    pinMode(2, OUTPUT);
-
+    digitalWrite(INCREASE_LED, HIGH);
+    digitalWrite(DECREASE_LED, HIGH);
+    digitalWrite(HOLD_LED, HIGH);
 }
 
 void loop()
 {
-    reader.read_data();
-    ArduinoOTA.handle();
+  reader.wait_for_data();
+  ArduinoOTA.handle();
 }
